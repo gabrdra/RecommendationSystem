@@ -1,7 +1,11 @@
 package fileReader;
 
+import java.util.ArrayList;
+
+import model.User;
+
 public interface FileReader {
 
-	public float[][] retrieveData();
+	public ArrayList<User> retrieveData();
 	
 }
