@@ -1,11 +1,11 @@
 package fileReader;
 
-import java.util.ArrayList;
+import java.util.HashMap;
 
 import model.User;
 
 public interface FileReader {
 
-	public ArrayList<User> retrieveData();
+	public HashMap<Integer, User> retrieveData();
 	
 }
