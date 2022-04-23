@@ -2,10 +2,7 @@ package recommendation;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
-import java.util.PriorityQueue;
-
 import model.Movie;
 import model.User;
 
@@ -17,6 +14,7 @@ public class ItemRecommendation {
 		User user = users.get(userId);
 		ArrayList<User> usersList = calculateUsersSimilarity(user, users);
 		Collections.sort(usersList,Collections.reverseOrder());
+		
 		return recommendedMovies;
 	}
 	
