@@ -1,6 +1,6 @@
 package model;
 
-public class Movie {
+public class Movie implements Comparable<Movie>{
 
 	private int id;
 	private float rating;
@@ -27,5 +27,13 @@ public class Movie {
 	public boolean equals(Object obj) {
 		Movie other = (Movie) obj;
 		return this.id == other.id;
-	}	
+	}
+
+	@Override
+	public int compareTo(Movie o) {
+		double delta = rating - o.rating;
+        if (delta > 0 ) return 1;
+        if (delta < 0) return -1;
+        return 0;
+	}
 }
