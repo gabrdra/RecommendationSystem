@@ -5,7 +5,7 @@ import java.util.ArrayList;
 public class User implements Comparable<User>{
 	private int id;
 	private ArrayList<Movie> movies;
-	private float similarity =-2f;
+	private float similarity = -2f;
 	public User() {
 		this(0);
 	}
@@ -33,6 +33,18 @@ public class User implements Comparable<User>{
 	}
 	public void setSimilarity(float similarity) {
 		this.similarity = similarity;
+	}
+	public float getMoviesAverageRating() {
+		float averageRating = 0f;
+		for(Movie movie: movies)
+			averageRating+=movie.getRating();
+		averageRating /= movies.size();
+		return averageRating;
+	}
+	@Override
+	public boolean equals(Object obj) {
+		User other = (User) obj;
+		return this.id == other.id;
 	}
 	@Override
     public int compareTo(User other) {
