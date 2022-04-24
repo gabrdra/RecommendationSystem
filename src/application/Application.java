@@ -27,8 +27,9 @@ public class Application {
 		ArrayList<Movie> recommendedMovies = itemRecommendation.generateRecommendationForUser(997206, users, movies,1000);
 		Instant generateRecommendationTime = Instant.now();
 		System.out.println("Time it took to generate recommendations: "+Duration.between(retrieveDataTime, generateRecommendationTime));
-		for(Movie movie:recommendedMovies) {
-			System.out.println("MovieId: "+movie.getId()+ " predicted movie rating: "+movie.getRating());
+		for(int i = 0; i<50;i++) {
+			Movie movie = recommendedMovies.get(i);
+			System.out.println("Index: "+i+" MovieId: "+movie.getId()+ " predicted movie rating: "+movie.getRating());
 		}
 		
 	}
