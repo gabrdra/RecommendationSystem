@@ -18,7 +18,7 @@ public class ItemRecommendationTest {
 	/*
 	 * Time it took on my machine:
 	 * Serial: 26.696s
-	 * 
+	 * Threads: 30.049s
 	 * 
 	 */
 	@Test
@@ -44,7 +44,7 @@ public class ItemRecommendationTest {
 	/*
 	 * Time it took on my machine:
 	 * Serial: 24.079s
-	 * 
+	 * Threads: 28.532s
 	 * 
 	 */
 	@Test
@@ -68,7 +68,7 @@ public class ItemRecommendationTest {
 	/*
 	 * Time it took on my machine:
 	 * Serial: 23.920s
-	 * 
+	 * Threads: 29.501s
 	 * 
 	 */
 	@Test
@@ -88,7 +88,7 @@ public class ItemRecommendationTest {
 	/*
 	 * Time it took on my machine:
 	 * Serial: 91.085s
-	 * 
+	 * Threads: 33.128s
 	 * 
 	 */
 	@Test

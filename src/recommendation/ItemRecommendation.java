@@ -3,6 +3,8 @@ package recommendation;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.concurrent.Semaphore;
+
 import model.Movie;
 import model.User;
 
@@ -17,8 +19,49 @@ public class ItemRecommendation {
 		Collections.sort(usersList,Collections.reverseOrder());
 		//Collections.sort(usersList,Collections.reverseOrder());
 		float userAverageRating = user.getMoviesAverageRating();
-		
+		Object recommendedMoviesLock = new Object();
+		Semaphore semaphore = new Semaphore(Runtime.getRuntime().availableProcessors());
 		movies.forEach((movieId, movie)->{
+			try {
+				semaphore.acquire();
+				PredictRatingScore p = new PredictRatingScore(movieId,otherAmount,userAverageRating,movie,
+						recommendedMovies,usersList,recommendedMoviesLock);
+				p.start();
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}finally {
+				semaphore.release();
+			}
+			
+		});
+		Collections.sort(recommendedMovies, Collections.reverseOrder());
+		
+		return recommendedMovies;
+	}
+	private class PredictRatingScore extends Thread{
+		private int movieId;
+		private Movie movie;
+		private ArrayList<Movie> recommendedMovies;
+		private ArrayList<User> usersList;
+		private int otherAmount;
+		private float userAverageRating;
+		private Object recommendedMoviesLock;
+		public PredictRatingScore(int movieId,int otherAmount,float userAverageRating,Movie movie,
+				ArrayList<Movie> recommendedMovies, ArrayList<User> usersList,Object recommendedMoviesLock) {
+			this.movieId = movieId;
+			this.movie = movie;
+			this.otherAmount = otherAmount;
+			this.userAverageRating = userAverageRating;
+			this.movie = movie;
+			this.recommendedMovies = recommendedMovies;
+			this.usersList = usersList;	
+			this.recommendedMoviesLock = recommendedMoviesLock;
+		}
+		public void run(){
+			predictScore();
+		}
+		private void predictScore() {
 			int counter = 0;
 			float normalizedSumOfSimilaritty = 0f;
 			float total = 0f;
@@ -34,14 +77,12 @@ public class ItemRecommendation {
 			}
 			if(counter>5){// only adds a movie if it has being rated more than 5 times by other users
 				float predictedRating = userAverageRating+(total/normalizedSumOfSimilaritty);
-				recommendedMovies.add(new Movie(movieId,predictedRating));
+				synchronized (recommendedMoviesLock) {
+					recommendedMovies.add(new Movie(movieId,predictedRating));
+				}
 			}
-		});
-		Collections.sort(recommendedMovies, Collections.reverseOrder());
-		
-		return recommendedMovies;
+		}
 	}
-	
 	
 	private ArrayList<User> calculateUsersSimilarity(User user, HashMap<Integer, User> users) {
 		ArrayList<User> usersList = new ArrayList<User>();
