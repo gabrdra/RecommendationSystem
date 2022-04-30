@@ -35,8 +35,10 @@ public class ItemRecommendation {
 			}
 			
 		});
-		Collections.sort(recommendedMovies, Collections.reverseOrder());
-		
+		//while(PredictRatingScore.activeCount()>1) {System.out.println(PredictRatingScore.activeCount());};
+		synchronized (recommendedMoviesLock) {
+			Collections.sort(recommendedMovies, Collections.reverseOrder());
+		}
 		return recommendedMovies;
 	}
 	private class PredictRatingScore extends Thread{
