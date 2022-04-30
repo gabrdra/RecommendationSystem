@@ -14,8 +14,8 @@ import model.User;
 public class JsonFileReader implements FileReader {
 
 	public static final String path = "E:\\UFRN\\P7\\Concorrente\\ratings.json";
-	HashMap<Integer,User> usersData;
-	HashMap<Integer,Movie> moviesData;
+	private HashMap<Integer,User> usersData;
+	private HashMap<Integer,Movie> moviesData;
 	
 	public JsonFileReader() {retrieveData();};
 	
