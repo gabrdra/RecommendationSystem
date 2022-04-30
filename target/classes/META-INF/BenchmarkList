@@ -1,0 +1,1 @@
+JMH S 41 application.RecommendationSystemBenchmark S 86 application.jmh_generated.RecommendationSystemBenchmark_recommendationsForUser_jmhTest S 22 recommendationsForUser S 10 Throughput E A 1 1 1 E I 1 5 T 3 1 s E I 1 5 T 3 1 s E I 1 1 E E E E E E U 7 SECONDS E E 
