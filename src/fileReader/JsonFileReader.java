@@ -13,7 +13,7 @@ import model.User;
 
 public class JsonFileReader implements FileReader {
 
-	public static final String path = "E:\\UFRN\\P7\\Concorrente\\ratingsSplit\\ratings";
+	public static final String path = "E:\\UFRN\\P7\\Concorrente\\ratings.json";
 	private HashMap<Integer,User> usersData;
 	private HashMap<Integer,Movie> moviesData;
 	
@@ -22,35 +22,43 @@ public class JsonFileReader implements FileReader {
 	private void retrieveData() {
 		usersData = new HashMap<Integer,User>();
 		moviesData = new HashMap<Integer,Movie>();
-		for(int i =1; i<=12;i++) {
-	        try(Stream<String> inputStream = Files.lines(Paths.get(path+i+".json"), StandardCharsets.UTF_8)){
-	        	Consumer<String> consumer = line->{
-	        		String[] jsonParts = line.split(", ");
-	        		int userId = Integer.parseInt(jsonParts[1].substring(11));
-	        		int movieId = Integer.parseInt(jsonParts[0].substring(12));
-	        		float rating = Float.parseFloat(jsonParts[2].substring(10,13));
-	        		User user = usersData.get(userId);
-	        		if(user != null) {
-	        			Movie movie = new Movie(movieId, rating);
-	        			user.addMovie(movie);
-	        		}
-	        		else {
-	        			user = new User(userId);
-	        			Movie movie = new Movie(movieId, rating);
-	        			user.addMovie(movie);
-	        			usersData.put(userId, user);
-	        		}
-	        		if(!moviesData.containsKey(movieId)) {
-	        			Movie movie = new Movie(movieId,-1f);
-	        			moviesData.put(movieId, movie);
-	        		}
-	        		};
-	        	inputStream.forEach(consumer);
-	        } catch (IOException e) {
-				e.printStackTrace();
-			}
+        try(Stream<String> inputStream = Files.lines(Paths.get(path), StandardCharsets.UTF_8)){
+        	Consumer<String> consumer = line->{
+        		String[] jsonParts = line.split(", ");
+        		int userId = Integer.parseInt(jsonParts[1].substring(11));
+        		int movieId = Integer.parseInt(jsonParts[0].substring(12));
+        		float rating = Float.parseFloat(jsonParts[2].substring(10,13));
+        		User user = usersData.get(userId);
+        		if(user != null) {
+        			Movie movie = new Movie(movieId, rating);
+        			user.addMovie(movie);
+        		}
+        		else {
+        			user = new User(userId);
+        			Movie movie = new Movie(movieId, rating);
+        			user.addMovie(movie);
+        			usersData.put(userId, user);
+        		}
+        		if(!moviesData.containsKey(movieId)) {
+        			Movie movie = new Movie(movieId,-1f);
+        			moviesData.put(movieId, movie);
+        		}
+        		//System.out.println(jsonParts[0]+" split "+jsonParts[0].substring(12));
+        		//System.out.println(jsonParts[1]+" split "+jsonParts[1].substring(11));
+        		//System.out.println(jsonParts[2]+" split "+jsonParts[2].substring(10,13));
+        		};
+        	inputStream.forEach(consumer);
+//        	Iterator<String> streamIterator = inputStream.iterator();
+//        	while(streamIterator.hasNext()) {
+//        		String[] jsonParts = streamIterator.next().split(", ");
+//        		System.out.println(jsonParts[0]);
+//        		System.out.println(jsonParts[1]);
+//        		System.out.println(jsonParts[2]);
+//        	}
+        } catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
-
 	}
 
 	@Override
