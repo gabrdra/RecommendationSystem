@@ -25,6 +25,6 @@ public class RecommendationSystemBenchmark {
 	@Fork(value = 1)
 	public void recommendationsForUser() {
 		ItemRecommendation ir = new ItemRecommendation();
-		ir.generateRecommendationForUser(393887, new HashMap<Integer,User>(users), new HashMap<Integer,Movie>(movies), 2500);
+		ir.generateRecommendationForUser(393887, new HashMap<Integer,User>(users), new HashMap<Integer,Movie>(movies), 5000);
 	}
 }
