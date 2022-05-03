@@ -24,9 +24,9 @@ public class Application {
 	public static void main(String[] args) throws RunnerException {
 		Options opt = new OptionsBuilder()
 				.include(RecommendationSystemBenchmark.class.getSimpleName())
-				.warmupIterations(8)
+				.warmupIterations(5)
 				.shouldDoGC(true)
-				.measurementIterations(5).forks(1)
+				.measurementIterations(8).forks(1)
 				.addProfiler(GCProfiler.class)
 				.addProfiler(StackProfiler.class)
 				.jvmArgs("-server", "-Xms2048m","-Xmx2048m").build();
