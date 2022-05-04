@@ -24,7 +24,7 @@ public class Application {
 	public static void main(String[] args) throws RunnerException {
 		Options opt = new OptionsBuilder()
 				.include(RecommendationSystemBenchmark.class.getSimpleName())
-				.warmupIterations(5)
+				.warmupIterations(3)
 				.shouldDoGC(true)
 				.measurementIterations(8).forks(1)
 				.addProfiler(GCProfiler.class)

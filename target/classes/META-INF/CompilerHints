@@ -3,5 +3,7 @@ dontinline,*.*_avgt_jmhStub
 dontinline,*.*_sample_jmhStub
 dontinline,*.*_ss_jmhStub
 dontinline,*.*_thrpt_jmhStub
-inline,application/RecommendationSystemBenchmark.recommendationsForUser
+inline,application/RecommendationSystemBenchmark.recommendationsForUserWith2500Samples
+inline,application/RecommendationSystemBenchmark.recommendationsForUserWith250Samples
+inline,application/RecommendationSystemBenchmark.recommendationsForUserWith5000Samples
 inline,application/RecommendationSystemBenchmark.setup

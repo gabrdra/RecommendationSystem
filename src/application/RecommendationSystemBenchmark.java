@@ -23,8 +23,20 @@ public class RecommendationSystemBenchmark {
 	}
 	@Benchmark
 	@Fork(value = 1)
-	public void recommendationsForUser() {
+	public void recommendationsForUserWith5000Samples() {
 		ItemRecommendation ir = new ItemRecommendation();
 		ir.generateRecommendationForUser(393887, new HashMap<Integer,User>(users), new HashMap<Integer,Movie>(movies), 5000);
+	}
+	@Benchmark
+	@Fork(value = 1)
+	public void recommendationsForUserWith2500Samples() {
+		ItemRecommendation ir = new ItemRecommendation();
+		ir.generateRecommendationForUser(393887, new HashMap<Integer,User>(users), new HashMap<Integer,Movie>(movies), 2500);
+	}
+	@Benchmark
+	@Fork(value = 1)
+	public void recommendationsForUserWith250Samples() {
+		ItemRecommendation ir = new ItemRecommendation();
+		ir.generateRecommendationForUser(393887, new HashMap<Integer,User>(users), new HashMap<Integer,Movie>(movies), 250);
 	}
 }
