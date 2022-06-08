@@ -21,11 +21,13 @@ public class ItemRecommendation {
 		float userAverageRating = user.getMoviesAverageRating();
 		Object recommendedMoviesLock = new Object();
 		Semaphore semaphore = new Semaphore(Runtime.getRuntime().availableProcessors());
+		ArrayList<PredictRatingScore> threads = new ArrayList<>();
 		movies.forEach((movieId, movie)->{
 			try {
 				semaphore.acquire();
 				PredictRatingScore p = new PredictRatingScore(movieId,otherAmount,userAverageRating,movie,
 						recommendedMovies,usersList,recommendedMoviesLock);
+				threads.add(p);
 				p.start();
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
@@ -35,6 +37,14 @@ public class ItemRecommendation {
 			}
 			
 		});
+		for (PredictRatingScore predictRatingScore : threads) {
+			try {
+				predictRatingScore.join();
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 		//while(PredictRatingScore.activeCount()>1) {System.out.println(PredictRatingScore.activeCount());};
 		synchronized (recommendedMoviesLock) {
 			Collections.sort(recommendedMovies, Collections.reverseOrder());
