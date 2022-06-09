@@ -31,10 +31,10 @@ public class JMeterTest  extends AbstractJavaSamplerClient implements Serializab
 		HashMap<Integer, User> users = fileReader.getUsers();
 		HashMap<Integer, Movie> movies = fileReader.getMovies();
 		ItemRecommendation ir = new ItemRecommendation();
-		ArrayList<Movie> moviePredictions = ir.generateRecommendationForUser(393887,users,movies, 2500);
-		if(moviePredictions.get(0).getId() == 8928 && moviePredictions.get(0).getRating() == 4.185441f
-				&& moviePredictions.get(15).getId() == 590 && moviePredictions.get(15).getRating() == 3.729213f
-				&& moviePredictions.get(45).getId() == 96432 && moviePredictions.get(45).getRating() == 3.6171794f) {
+		ArrayList<Movie> moviePredictions = ir.generateRecommendationForUser(997206, users, movies,1000);
+		if(moviePredictions.get(0).getId() == 1304 && moviePredictions.get(0).getRating() == 4.998936f
+				&& moviePredictions.get(24).getId() == 1148 && moviePredictions.get(24).getRating() == 4.4793544f
+				&& moviePredictions.get(46).getId() == 1094 && moviePredictions.get(46).getRating() == 4.3713636f) {
 			result.sampleEnd();
 			result.setResponseCode("200");
 			result.setResponseMessage("OK");

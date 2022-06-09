@@ -145,7 +145,7 @@ public class Application {
 //		//System.out.println(users.get(997206).getMovies().toString());
 //		//System.out.println(movies.get(10).toString());
 //		//System.out.println("Time it took to retrieve data: "+Duration.between(start, retrieveDataTime));
-//		ArrayList<Movie> recommendedMovies = itemRecommendation.generateRecommendationForUser(393887, users, movies,2500);
+//		ArrayList<Movie> recommendedMovies = itemRecommendation.generateRecommendationForUser(997206, users, movies,1000);
 //		//Instant generateRecommendationTime = Instant.now();
 //		//System.out.println("Time it took to generate recommendations: "+Duration.between(retrieveDataTime, generateRecommendationTime));
 //		for(int i = 0; i<50;i++) {
