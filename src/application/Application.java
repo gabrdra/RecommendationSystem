@@ -136,18 +136,18 @@ public class Application {
 		
 		
 		
-//		Instant start = Instant.now();
-//		//FileReader fileReader = new JsonFileReader();
+		//Instant start = Instant.now();
+//		FileReader fileReader = new JsonFileReader();
 //		ItemRecommendation itemRecommendation = new ItemRecommendation();
-//		//HashMap<Integer,User> users = fileReader.getUsers();
-//		//HashMap<Integer,Movie> movies = fileReader.getMovies();
-//		Instant retrieveDataTime = Instant.now();
+//		HashMap<Integer,User> users = fileReader.getUsers();
+//		HashMap<Integer,Movie> movies = fileReader.getMovies();
+//		//Instant retrieveDataTime = Instant.now();
 //		//System.out.println(users.get(997206).getMovies().toString());
 //		//System.out.println(movies.get(10).toString());
-//		System.out.println("Time it took to retrieve data: "+Duration.between(start, retrieveDataTime));
-//		ArrayList<Movie> recommendedMovies = itemRecommendation.generateRecommendationForUser(1, users, movies,1000);
-//		Instant generateRecommendationTime = Instant.now();
-//		System.out.println("Time it took to generate recommendations: "+Duration.between(retrieveDataTime, generateRecommendationTime));
+//		//System.out.println("Time it took to retrieve data: "+Duration.between(start, retrieveDataTime));
+//		ArrayList<Movie> recommendedMovies = itemRecommendation.generateRecommendationForUser(393887, users, movies,2500);
+//		//Instant generateRecommendationTime = Instant.now();
+//		//System.out.println("Time it took to generate recommendations: "+Duration.between(retrieveDataTime, generateRecommendationTime));
 //		for(int i = 0; i<50;i++) {
 //			Movie movie = recommendedMovies.get(i);
 //			System.out.println("Index: "+i+" MovieId: "+movie.getId()+ " predicted movie rating: "+movie.getRating());

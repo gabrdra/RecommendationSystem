@@ -17,6 +17,7 @@ application\JCSTest_StressTest_jcstress$2$1.class
 META-INF\CompilerHints
 application\JCSTest$StressTest.class
 model\User.class
+application\JMeterTest.class
 fileReader\JsonFileReader.class
 META-INF\BenchmarkList
 fileReader\FileReader.class
