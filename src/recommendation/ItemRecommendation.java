@@ -3,10 +3,13 @@ package recommendation;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReferenceArray;
 
 import model.Movie;
 import model.User;
@@ -22,11 +25,14 @@ public class ItemRecommendation {
 		Collections.sort(usersList,Collections.reverseOrder());
 		//Collections.sort(usersList,Collections.reverseOrder());
 		float userAverageRating = user.getMoviesAverageRating();
-		Object recommendedMoviesLock = new Object();
+		//Object recommendedMoviesLock = new Object();
 		//Semaphore semaphore = new Semaphore(Runtime.getRuntime().availableProcessors());
 //		ArrayList<PredictRatingScore> threads = new ArrayList<>();
 		
 		ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());  
+		
+		AtomicReferenceArray<Movie> moviesArray = new AtomicReferenceArray<>(movies.size());
+		AtomicInteger lastMovieIndex = new AtomicInteger();
 		
 		movies.forEach((movieId, movie)->{	
 			executor.execute(new Runnable() {
@@ -48,9 +54,11 @@ public class ItemRecommendation {
 					}
 					if(counter>5){// only adds a movie if it has being rated more than 5 times by other users
 						float predictedRating = userAverageRating+(total/normalizedSumOfSimilaritty);
-						synchronized (recommendedMoviesLock) {
-							recommendedMovies.add(new Movie(movieId,predictedRating));
-						}
+						int movieIndex = lastMovieIndex.getAndIncrement();
+						moviesArray.set(movieIndex, new Movie(movieId,predictedRating));
+//						synchronized (recommendedMoviesLock) {
+//							recommendedMovies.add(new Movie(movieId,predictedRating));
+//						}
 					}
 				}
 				
@@ -70,10 +78,12 @@ public class ItemRecommendation {
 //				e.printStackTrace();
 //			}
 //		}
-		//while(PredictRatingScore.activeCount()>1) {System.out.println(PredictRatingScore.activeCount());};
-		synchronized (recommendedMoviesLock) {
-			Collections.sort(recommendedMovies, Collections.reverseOrder());
+		for (int j = 0; j < lastMovieIndex.get(); j++) {
+			recommendedMovies.add(moviesArray.get(j));
 		}
+//		synchronized (recommendedMoviesLock) {
+			Collections.sort(recommendedMovies, Collections.reverseOrder());
+//		}
 
 		return recommendedMovies;
 	}
