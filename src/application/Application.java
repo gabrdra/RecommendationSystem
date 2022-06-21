@@ -135,15 +135,15 @@ public class Application {
 		
 		
 		
-		
+//		
 		Instant start = Instant.now();
 		FileReader fileReader = new JsonFileReader();
 		ItemRecommendation itemRecommendation = new ItemRecommendation();
 		HashMap<Integer,User> users = fileReader.getUsers();
 		HashMap<Integer,Movie> movies = fileReader.getMovies();
 		Instant retrieveDataTime = Instant.now();
-		System.out.println(users.get(997206).getMovies().toString());
-		System.out.println(movies.get(10).toString());
+		//System.out.println(users.get(997206).getMovies().toString());
+		//System.out.println(movies.get(10).toString());
 		System.out.println("Time it took to retrieve data: "+Duration.between(start, retrieveDataTime));
 		ArrayList<Movie> recommendedMovies = itemRecommendation.generateRecommendationForUser(997206, users, movies,1000);
 		Instant generateRecommendationTime = Instant.now();
