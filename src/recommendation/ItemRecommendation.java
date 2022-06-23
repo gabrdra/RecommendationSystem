@@ -2,6 +2,7 @@ package recommendation;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -71,9 +72,10 @@ public class ItemRecommendation {
 //			}
 //		}
 		//while(PredictRatingScore.activeCount()>1) {System.out.println(PredictRatingScore.activeCount());};
-		synchronized (recommendedMoviesLock) {
+		//ArrayList<Movie> sortedMovies = new ArrayList<Movie>(recommendedMovies.parallelStream().sorted().toList());
+//		synchronized (recommendedMoviesLock) {
 			Collections.sort(recommendedMovies, Collections.reverseOrder());
-		}
+//		}
 
 		return recommendedMovies;
 	}

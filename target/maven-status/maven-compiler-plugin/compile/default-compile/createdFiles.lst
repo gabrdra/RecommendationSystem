@@ -3,6 +3,7 @@ application\jmh_generated\RecommendationSystemBenchmark_recommendationsForUserWi
 application\JCSTest_StressTest_jcstress.class
 application\jmh_generated\RecommendationSystemBenchmark_jmhType_B3.class
 META-INF\TestList
+application\Application.class
 model\Movie.class
 application\JCSTest_StressTest_jcstress$3.class
 application\jmh_generated\RecommendationSystemBenchmark_jmhType_B1.class
