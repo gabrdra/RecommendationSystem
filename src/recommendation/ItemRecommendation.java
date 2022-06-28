@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Semaphore;
@@ -21,11 +23,8 @@ public class ItemRecommendation {
 		ArrayList<User> usersList = calculateUsersSimilarity(user, users);
 		int otherAmount = Math.min(usersList.size(), numberOfUsersComparatedTo);
 		Collections.sort(usersList,Collections.reverseOrder());
-		//Collections.sort(usersList,Collections.reverseOrder());
 		float userAverageRating = user.getMoviesAverageRating();
 		Object recommendedMoviesLock = new Object();
-		//Semaphore semaphore = new Semaphore(Runtime.getRuntime().availableProcessors());
-//		ArrayList<PredictRatingScore> threads = new ArrayList<>();
 		
 		ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());  
 		
@@ -63,66 +62,10 @@ public class ItemRecommendation {
 		}catch (Exception e) {
 			e.printStackTrace();
 		}
-//		for (PredictRatingScore predictRatingScore : threads) {
-//			try {
-//				predictRatingScore.join();
-//			} catch (InterruptedException e) {
-//				// TODO Auto-generated catch block
-//				e.printStackTrace();
-//			}
-//		}
-		//while(PredictRatingScore.activeCount()>1) {System.out.println(PredictRatingScore.activeCount());};
-		//ArrayList<Movie> sortedMovies = new ArrayList<Movie>(recommendedMovies.parallelStream().sorted().toList());
-//		synchronized (recommendedMoviesLock) {
-			Collections.sort(recommendedMovies, Collections.reverseOrder());
-//		}
+		Collections.sort(recommendedMovies, Collections.reverseOrder());
 
 		return recommendedMovies;
 	}
-//	private class PredictRatingScore implements Runnable{
-//		private int movieId;
-//		private Movie movie;
-//		private ArrayList<Movie> recommendedMovies;
-//		private ArrayList<User> usersList;
-//		private int otherAmount;
-//		private float userAverageRating;
-//		private Object recommendedMoviesLock;
-//		public PredictRatingScore(int movieId,int otherAmount,float userAverageRating,Movie movie,
-//				ArrayList<Movie> recommendedMovies, ArrayList<User> usersList,Object recommendedMoviesLock) {
-//			this.movieId = movieId;
-//			this.movie = movie;
-//			this.otherAmount = otherAmount;
-//			this.userAverageRating = userAverageRating;
-//			this.movie = movie;
-//			this.recommendedMovies = recommendedMovies;
-//			this.usersList = usersList;	
-//			this.recommendedMoviesLock = recommendedMoviesLock;
-//		}
-//		public void run(){
-//			predictScore();
-//		}
-//		private void predictScore() {
-//			int counter = 0;
-//			float normalizedSumOfSimilaritty = 0f;
-//			float total = 0f;
-//			for(int i = 0; i<otherAmount;i++) {
-//				User other = usersList.get(i);
-//				ArrayList<Movie> otherMovies = other.getMovies();
-//				int movieIndex = otherMovies.indexOf(movie);
-//				if(movieIndex>-1f) {
-//					counter++;
-//					normalizedSumOfSimilaritty += Math.abs(other.getSimilarity());
-//					total += (otherMovies.get(movieIndex).getRating()-other.getMoviesAverageRating())*other.getSimilarity();
-//				}
-//			}
-//			if(counter>5){// only adds a movie if it has being rated more than 5 times by other users
-//				float predictedRating = userAverageRating+(total/normalizedSumOfSimilaritty);
-//				synchronized (recommendedMoviesLock) {
-//					recommendedMovies.add(new Movie(movieId,predictedRating));
-//				}
-//			}
-//		}
-//	}
 	
 	private ArrayList<User> calculateUsersSimilarity(User user, HashMap<Integer, User> users) {
 		ArrayList<User> usersList = new ArrayList<User>();
@@ -143,10 +86,26 @@ public class ItemRecommendation {
 		float userSumOfDeltas = 0f; //This is the squared deviation between a given movie and the remaining movies rated by the user
 		float otherSumOfDeltas = 0f; 
 		float cosineSimilarity = 0f;
-		ArrayList<Movie> userMovies = user.getMovies();
-		ArrayList<Movie> otherMovies = other.getMovies();
-		float userAverageRating = user.getMoviesAverageRating();
-		float otherAverageRating = other.getMoviesAverageRating();
+		ArrayList<Movie> userMovies = null;
+		CompletableFuture<ArrayList<Movie>> userMoviesFuture = CompletableFuture.supplyAsync(()->user.getMovies());
+		ArrayList<Movie> otherMovies = null;
+		CompletableFuture<ArrayList<Movie>> otherMoviesFuture = CompletableFuture.supplyAsync(()->other.getMovies());
+		float userAverageRating = 0;
+		CompletableFuture<Float> userAverageRatingFuture = CompletableFuture.supplyAsync(()->user.getMoviesAverageRating());
+		float otherAverageRating = 0;
+		CompletableFuture<Float> otherAverageRatingFuture = CompletableFuture.supplyAsync(()->other.getMoviesAverageRating());
+		CompletableFuture<Void> combinedFuture = CompletableFuture.allOf(userMoviesFuture, otherMoviesFuture,userAverageRatingFuture,otherAverageRatingFuture);
+			try {
+				combinedFuture.get();
+				userMovies = userMoviesFuture.get();
+				otherMovies = otherMoviesFuture.get();
+				userAverageRating = userAverageRatingFuture.get();
+				otherAverageRating = otherAverageRatingFuture.get();
+			} catch (InterruptedException | ExecutionException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
 		for(Movie userMovie:userMovies) {
 			for(Movie otherMovie:otherMovies) {
 				if(userMovie.equals(otherMovie)) {
