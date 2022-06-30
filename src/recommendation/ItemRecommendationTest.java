@@ -4,6 +4,7 @@
 //
 //import java.util.ArrayList;
 //import java.util.HashMap;
+//import java.util.List;
 //
 //import org.junit.Test;
 //
@@ -27,7 +28,7 @@
 //		ItemRecommendation itemRecommendation = new ItemRecommendation();
 //		HashMap<Integer,User> users = fileReader.getUsers();
 //		HashMap<Integer,Movie> movies = fileReader.getMovies();
-//		ArrayList<Movie> recommendedMovies = itemRecommendation.generateRecommendationForUser(997206, users, movies,1000);
+//		List<Movie> recommendedMovies = itemRecommendation.generateRecommendationForUser(997206, users, movies,1000);
 //		assertEquals(recommendedMovies.get(0).getId(),1304,0);
 //		assertEquals(recommendedMovies.get(0).getRating(),4.998936f,0.0000f);
 //		assertEquals(recommendedMovies.get(10).getId(),953,0);
@@ -53,7 +54,7 @@
 //		ItemRecommendation itemRecommendation = new ItemRecommendation();
 //		HashMap<Integer,User> users = fileReader.getUsers();
 //		HashMap<Integer,Movie> movies = fileReader.getMovies();
-//		ArrayList<Movie> recommendedMovies = itemRecommendation.generateRecommendationForUser(771795, users, movies,500);
+//		List<Movie> recommendedMovies = itemRecommendation.generateRecommendationForUser(771795, users, movies,500);
 //		assertEquals(recommendedMovies.get(0).getId(),480,0);
 //		assertEquals(recommendedMovies.get(0).getRating(),4.835126f,0.0000f);
 //		assertEquals(recommendedMovies.get(9).getId(),1784,0);
@@ -77,8 +78,8 @@
 //		ItemRecommendation itemRecommendation = new ItemRecommendation();
 //		HashMap<Integer,User> users = fileReader.getUsers();
 //		HashMap<Integer,Movie> movies = fileReader.getMovies();
-//		ArrayList<Movie> recommendedMovies = itemRecommendation.generateRecommendationForUser(847293, users, movies,200);
-//		assertEquals(recommendedMovies.get(0).getId(),904,0);
+//		List<Movie> recommendedMovies = itemRecommendation.generateRecommendationForUser(847293, users, movies,200);
+////		assertEquals(recommendedMovies.get(0).getId(),904,0);
 //		assertEquals(recommendedMovies.get(0).getRating(),4.2815156f,0.0000f);
 //		assertEquals(recommendedMovies.get(21).getId(),1617,0);
 //		assertEquals(recommendedMovies.get(21).getRating(),3.8915155f,0.0000f);
@@ -97,7 +98,7 @@
 //		ItemRecommendation itemRecommendation = new ItemRecommendation();
 //		HashMap<Integer,User> users = fileReader.getUsers();
 //		HashMap<Integer,Movie> movies = fileReader.getMovies();
-//		ArrayList<Movie> recommendedMovies = itemRecommendation.generateRecommendationForUser(393887, users, movies,5000);
+//		List<Movie> recommendedMovies = itemRecommendation.generateRecommendationForUser(393887, users, movies,5000);
 //		assertEquals(recommendedMovies.get(0).getId(),114494,0);
 //		assertEquals(recommendedMovies.get(0).getRating(),4.1772466f,0.0000f);
 //		assertEquals(recommendedMovies.get(9).getId(),210861,0);

@@ -13,7 +13,7 @@ import model.User;
 
 public class JsonFileReader implements FileReader {
 
-	public static final String path = "E:\\UFRN\\P7\\Concorrente\\ratings.json";
+	public static final String path ="D:\\ConcorrenteTemp\\ratings.json"; //"E:\\UFRN\\P7\\Concorrente\\ratings.json";
 	private HashMap<Integer,User> usersData;
 	private HashMap<Integer,Movie> moviesData;
 	

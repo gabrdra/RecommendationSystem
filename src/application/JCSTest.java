@@ -2,6 +2,7 @@ package application;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import org.openjdk.jcstress.annotations.Actor;
 import org.openjdk.jcstress.annotations.Expect;
@@ -104,7 +105,7 @@ public class JCSTest {
 			users.get(8).addMovie(new Movie(10, 4.0f));
 			
 			ItemRecommendation itemRecommendation = new ItemRecommendation();
-			ArrayList<Movie> recommendedMovies = itemRecommendation.generateRecommendationForUser(1, users, movies,1000);
+			List<Movie> recommendedMovies = itemRecommendation.generateRecommendationForUser(1, users, movies,1000);
 			r.r1 = recommendedMovies.get(0).getId();
 			if(recommendedMovies.get(0).getRating() == 4.1636257f) {
 				r.r2 = 1;
