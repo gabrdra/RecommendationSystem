@@ -10,13 +10,13 @@ application\jmh_generated\RecommendationSystemBenchmark_jmhType_B1.class
 application\JCSTest.class
 recommendation\ItemRecommendation.class
 application\jmh_generated\RecommendationSystemBenchmark_jmhType.class
-recommendation\ItemRecommendation$PredictRatingScore.class
 application\RecommendationSystemBenchmark.class
 application\JCSTest_StressTest_jcstress$2.class
 application\JCSTest_StressTest_jcstress$2$1.class
 META-INF\CompilerHints
 application\JCSTest$StressTest.class
 model\User.class
+recommendation\ItemRecommendation$1.class
 application\JMeterTest.class
 fileReader\JsonFileReader.class
 META-INF\BenchmarkList
