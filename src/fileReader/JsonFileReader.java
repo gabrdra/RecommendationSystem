@@ -43,18 +43,8 @@ public class JsonFileReader implements FileReader {
         			Movie movie = new Movie(movieId,-1f);
         			moviesData.put(movieId, movie);
         		}
-        		//System.out.println(jsonParts[0]+" split "+jsonParts[0].substring(12));
-        		//System.out.println(jsonParts[1]+" split "+jsonParts[1].substring(11));
-        		//System.out.println(jsonParts[2]+" split "+jsonParts[2].substring(10,13));
         		};
         	inputStream.forEach(consumer);
-//        	Iterator<String> streamIterator = inputStream.iterator();
-//        	while(streamIterator.hasNext()) {
-//        		String[] jsonParts = streamIterator.next().split(", ");
-//        		System.out.println(jsonParts[0]);
-//        		System.out.println(jsonParts[1]);
-//        		System.out.println(jsonParts[2]);
-//        	}
         } catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

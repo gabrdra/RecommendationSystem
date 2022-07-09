@@ -18,10 +18,8 @@ public class ItemRecommendation {
 		ArrayList<User> usersList = calculateUsersSimilarity(user, users);
 		int otherAmount = Math.min(usersList.size(), numberOfUsersComparatedTo);
 		Collections.sort(usersList,Collections.reverseOrder());
-		//Collections.sort(usersList,Collections.reverseOrder());
 		float userAverageRating = user.getMoviesAverageRating();
 		Object recommendedMoviesLock = new Object();
-		//Semaphore semaphore = new Semaphore(Runtime.getRuntime().availableProcessors());
 		ArrayList<Thread> threads = new ArrayList<>();
 		
 		movies.forEach((movieId, movie)->{
@@ -60,55 +58,10 @@ public class ItemRecommendation {
 				e.printStackTrace();
 			}
 		}
-		//while(PredictRatingScore.activeCount()>1) {System.out.println(PredictRatingScore.activeCount());};
 		Collections.sort(recommendedMovies, Collections.reverseOrder());
 
 		return recommendedMovies;
 	}
-//	private class PredictRatingScore extends Thread{
-//		private int movieId;
-//		private Movie movie;
-//		private ArrayList<Movie> recommendedMovies;
-//		private ArrayList<User> usersList;
-//		private int otherAmount;
-//		private float userAverageRating;
-//		private Object recommendedMoviesLock;
-//		public PredictRatingScore(int movieId,int otherAmount,float userAverageRating,Movie movie,
-//				ArrayList<Movie> recommendedMovies, ArrayList<User> usersList,Object recommendedMoviesLock) {
-//			this.movieId = movieId;
-//			this.movie = movie;
-//			this.otherAmount = otherAmount;
-//			this.userAverageRating = userAverageRating;
-//			this.movie = movie;
-//			this.recommendedMovies = recommendedMovies;
-//			this.usersList = usersList;	
-//			this.recommendedMoviesLock = recommendedMoviesLock;
-//		}
-//		public void run(){
-//			predictScore();
-//		}
-//		private void predictScore() {
-//			int counter = 0;
-//			float normalizedSumOfSimilaritty = 0f;
-//			float total = 0f;
-//			for(int i = 0; i<otherAmount;i++) {
-//				User other = usersList.get(i);
-//				ArrayList<Movie> otherMovies = other.getMovies();
-//				int movieIndex = otherMovies.indexOf(movie);
-//				if(movieIndex>-1f) {
-//					counter++;
-//					normalizedSumOfSimilaritty += Math.abs(other.getSimilarity());
-//					total += (otherMovies.get(movieIndex).getRating()-other.getMoviesAverageRating())*other.getSimilarity();
-//				}
-//			}
-//			if(counter>5){// only adds a movie if it has being rated more than 5 times by other users
-//				float predictedRating = userAverageRating+(total/normalizedSumOfSimilaritty);
-//				synchronized (recommendedMoviesLock) {
-//					recommendedMovies.add(new Movie(movieId,predictedRating));
-//				}
-//			}
-//		}
-//	}
 	
 	private ArrayList<User> calculateUsersSimilarity(User user, HashMap<Integer, User> users) {
 		ArrayList<User> usersList = new ArrayList<User>();
