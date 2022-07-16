@@ -36,4 +36,10 @@ public class Movie implements Comparable<Movie>{
         if (delta < 0) return -1;
         return 0;
 	}
+
+	@Override
+	public String toString() {
+		return "Movie [id=" + id + ", rating=" + rating + "]";
+	}
+	
 }
