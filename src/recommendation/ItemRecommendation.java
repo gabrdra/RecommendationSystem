@@ -43,73 +43,20 @@ public class ItemRecommendation {
 				false
 			)
 		});
-		JavaRDD<Row> rows = sparkSession.read().format("json")
+		Dataset<Row> rows = sparkSession.read().format("json")
 				.option("multiline", "true")
 				.schema(schema)
-				.load("E:\\UFRN\\P7\\Concorrente\\ratingsfixed.json")
-				.toJavaRDD();
-		//Map the data to a JavaPairRDD that contains the user_id, movie_id and the rating
-		List<Tuple2<Integer, Float>> myUserMoviesList = new ArrayList<>();
-		JavaPairRDD<Integer, Tuple2<Integer, Float>> ratings = rows.mapToPair(row -> {
-			if(row.getInt(1) == userId) {
-				myUserMoviesList.add(new Tuple2<>(row.getInt(0), row.getFloat(2)));
-			}
-			return new Tuple2<>(row.getInt(1), new Tuple2<>(row.getInt(0), row.getFloat(2)));
-		});
-		float userAverageRatingLocal = 0;
-		for(Tuple2<Integer, Float> tuple : myUserMoviesList) {
-			userAverageRatingLocal += tuple._2;
-		}
-		userAverageRatingLocal /= myUserMoviesList.size();
-		final float userAverageRating = userAverageRatingLocal;
-		//final List<Tuple2<Integer, Float>> myUserMovies = myUserMoviesTemp;
-		//Calculate the cosine similarity between the user and the other users using the myUserMovies list
-		JavaPairRDD<Float, Tuple2<Integer, Iterable<Tuple2<Integer, Float>>>> cosineSimilarities = ratings.groupByKey()
-				.filter(tuple -> tuple._1 != userId)
-				.mapToPair(tuple -> {
-					float result = 0;
-					int numberOfMoviesRatedInCommom = 0;
-					float userSumOfDeltas = 0f; //This is the squared deviation between a given movie and the remaining movies rated by the user
-					float otherSumOfDeltas = 0f;
-					float cosineSimilarity = 0f;
-					float otherAverageRating = 0f;
-					int iterations = 0;
-					for(Tuple2<Integer, Float> movie : tuple._2) {
-						otherAverageRating += movie._2;
-						iterations++;
-					}
-					otherAverageRating /= iterations;
-					for(Tuple2<Integer, Float> otherMovie : tuple._2) {
-						for(Tuple2<Integer, Float> userMovie : myUserMoviesList) {
-							if(userMovie._1==otherMovie._1) {
-								numberOfMoviesRatedInCommom++;
-								float userMovieDelta = userMovie._2-userAverageRating;
-								float otherMovieDelta = otherMovie._2-otherAverageRating;
-								cosineSimilarity += userMovieDelta*otherMovieDelta;
-								userSumOfDeltas += userMovieDelta*userMovieDelta;
-								otherSumOfDeltas += otherMovieDelta*otherMovieDelta;
-							}
-						}
-					}
-					if(numberOfMoviesRatedInCommom>1&&cosineSimilarity!=0f&&userSumOfDeltas!=0f&&otherSumOfDeltas!=0f) {
-						cosineSimilarity /= Math.sqrt(userSumOfDeltas*otherSumOfDeltas);
-						result = cosineSimilarity;
-					}
-//					System.out.println("NM: "+numberOfMoviesRatedInCommom+ "CS: "+cosineSimilarity
-//							+"US: "+userSumOfDeltas+" OS: "+otherSumOfDeltas);
-					return new Tuple2<Float,Tuple2<Integer, Iterable<Tuple2<Integer, Float>>>>(result, tuple);
-				});
-		//Sort the cosine similarities in descending order
-		JavaPairRDD<Float, Tuple2<Integer, Iterable<Tuple2<Integer, Float>>>> sortedCosineSimilarities = cosineSimilarities.sortByKey(false);
-		sortedCosineSimilarities.foreach(tuple->{
-			System.out.println("User: " + tuple._2._1 + " Cosine similarity: " + tuple._1);
-		});
-		//Get the top users with the highest cosine similarity and put it in a list
-//		List<Tuple2<Float, Tuple2<Integer, Iterable<Tuple2<Integer, Float>>>>> topUsers = sortedCosineSimilarities.take(numberOfUsersComparatedTo);
-//		//Print top users list
-//		topUsers.forEach(tuple -> {
-//			System.out.println("User: " + tuple._2._1 + " Cosine similarity: " + tuple._1);
-//		});
+				.load("E:\\UFRN\\P7\\Concorrente\\ratingsfixed.json");
+		rows.createOrReplaceTempView("ratings");
+		Dataset<Row> myUser = sparkSession.sql("SELECT * FROM ratings WHERE user_id = " + userId);
+		myUser.show();
+		//Select all other users that are not myuser
+		String cosineSimilarity ="SELECT item_id, rating, FROM ratings WHERE user_id == " + userId;
+		Dataset<Row> otherUsers = sparkSession.sql("SELECT * FROM ratings WHERE user_id != " + userId);
+		//Creates a Dataset of the cosine similarities between myuser and other users
+		Dataset<Row> cosineSimilarities = sparkSession.sql("SELECT user_id, cosine_similarity(ratings.rating, otherUsers.rating) AS similarity " +
+				"FROM ratings AS myUser, ratings AS otherUsers WHERE myUser.user_id = " + userId + " AND otherUsers.user_id != " + userId);
+
 
 
 		return null;

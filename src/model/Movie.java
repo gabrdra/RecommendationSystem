@@ -1,7 +1,13 @@
 package model;
 
-public class Movie implements Comparable<Movie>{
+import java.io.Serializable;
 
+public class Movie implements Comparable<Movie>, Serializable {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 2243795535167111043L;
 	private int id;
 	private float rating;
 	
