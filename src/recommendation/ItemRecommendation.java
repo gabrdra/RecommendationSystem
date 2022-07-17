@@ -1,22 +1,13 @@
 package recommendation;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
-import java.util.function.Consumer;
 
-import model.Movie;
-import model.User;
-import scala.Int;
+import org.apache.spark.api.java.JavaSparkContext;
 import scala.Tuple2;
 
-import org.apache.cxf.jaxrs.model.UserApplication;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
-import org.apache.spark.sql.Column;
-import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
 import org.apache.spark.sql.types.DataTypes;
@@ -26,7 +17,7 @@ import org.apache.spark.sql.types.StructType;
 public class ItemRecommendation {
 
 
-	public ArrayList<Movie> generateRecommendationForUser(int userId, int numberOfUsersComparatedTo) {
+	public void generateRecommendationForUser(int userId, int numberOfUsersComparatedTo) {
 		SparkSession sparkSession = SparkSession.builder().appName("Recommendation system").master("local[*]").getOrCreate();
 		StructType schema = DataTypes.createStructType(new StructField[]{
 			DataTypes.createStructField(
@@ -46,73 +37,123 @@ public class ItemRecommendation {
 		JavaRDD<Row> rows = sparkSession.read().format("json")
 				.option("multiline", "true")
 				.schema(schema)
-				.load("E:\\UFRN\\P7\\Concorrente\\ratingsfixed.json")
+				.load("E:\\UFRN\\P7\\Concorrente\\ratingsfixed.json")//.load("E:\\UFRN\\P7\\Concorrente\\ratingssmallfixed.json")
 				.toJavaRDD();
+		JavaSparkContext sc = new JavaSparkContext(sparkSession.sparkContext());
 		//Map the data to a JavaPairRDD that contains the user_id, movie_id and the rating
-		List<Tuple2<Integer, Float>> myUserMoviesList = new ArrayList<>();
+		
 		JavaPairRDD<Integer, Tuple2<Integer, Float>> ratings = rows.mapToPair(row -> {
-			if(row.getInt(1) == userId) {
-				myUserMoviesList.add(new Tuple2<>(row.getInt(0), row.getFloat(2)));
-			}
 			return new Tuple2<>(row.getInt(1), new Tuple2<>(row.getInt(0), row.getFloat(2)));
 		});
-		float userAverageRatingLocal = 0;
-		for(Tuple2<Integer, Float> tuple : myUserMoviesList) {
-			userAverageRatingLocal += tuple._2;
+		JavaPairRDD<Integer, Iterable<Tuple2<Integer, Float>>> groupedRatings = ratings.groupByKey().filter(tuple -> tuple._1 != userId).filter(tuple-> tuple!=null);
+		List<Tuple2<Integer, Iterable<Tuple2<Integer, Float>>>> myUser = ratings.groupByKey().filter(tuple -> tuple._1 == userId).filter(tuple-> tuple!=null).collect();
+		List<Tuple2<Integer, Float>> myUserMoviesList = new ArrayList<>();
+		for (Tuple2<Integer, Float> item : myUser.get(0)._2) {
+			myUserMoviesList.add(item);
 		}
-		userAverageRatingLocal /= myUserMoviesList.size();
-		final float userAverageRating = userAverageRatingLocal;
-		//final List<Tuple2<Integer, Float>> myUserMovies = myUserMoviesTemp;
-		//Calculate the cosine similarity between the user and the other users using the myUserMovies list
-		JavaPairRDD<Float, Tuple2<Integer, Iterable<Tuple2<Integer, Float>>>> cosineSimilarities = ratings.groupByKey()
-				.filter(tuple -> tuple._1 != userId)
-				.mapToPair(tuple -> {
-					float result = 0;
-					int numberOfMoviesRatedInCommom = 0;
-					float userSumOfDeltas = 0f; //This is the squared deviation between a given movie and the remaining movies rated by the user
-					float otherSumOfDeltas = 0f;
-					float cosineSimilarity = 0f;
-					float otherAverageRating = 0f;
-					int iterations = 0;
-					for(Tuple2<Integer, Float> movie : tuple._2) {
-						otherAverageRating += movie._2;
-						iterations++;
+//		System.out.println("ratingsSize: "+ratings.count());
+//		System.out.println("groupedRatings: "+groupedRatings.count());
+//		System.out.println("myUserMoviesListSize: "+myUserMoviesList.size());
+		
+		float userAverageRating = 0f;
+		for(Tuple2<Integer, Float> tuple : myUserMoviesList) {
+			userAverageRating += tuple._2;
+		}
+		userAverageRating /= myUserMoviesList.size();
+		float finalUserAverageRating = userAverageRating;
+		List<Tuple2<Float, Iterable<Tuple2<Integer,Float>>>> othersWithSimilarity = new ArrayList<>();
+		groupedRatings.take(numberOfUsersComparatedTo).forEach((other)->{
+			float result = -2f;
+			int numberOfMoviesRatedInCommom = 0;
+			float userSumOfDeltas = 0f; //This is the squared deviation between a given movie and the remaining movies rated by the user
+			float otherSumOfDeltas = 0f;
+			float cosineSimilarity = 0f;
+			float otherAverageRating = 0f;
+			int iterations = 0;
+			for(Tuple2<Integer, Float> tuple : other._2) {
+				otherAverageRating += tuple._2;
+				iterations++;
+			}
+			otherAverageRating /= iterations;
+			for(Tuple2<Integer, Float> userMovie:myUserMoviesList) {
+				for(Tuple2<Integer, Float> otherMovie:other._2) {
+					if(userMovie.equals(otherMovie)) {
+						numberOfMoviesRatedInCommom++;
+						float userMovieDelta = userMovie._2-finalUserAverageRating;
+						float otherMovieDelta = otherMovie._2-otherAverageRating;
+						cosineSimilarity += userMovieDelta*otherMovieDelta;
+						userSumOfDeltas += userMovieDelta*userMovieDelta;
+						otherSumOfDeltas += otherMovieDelta*otherMovieDelta;
 					}
-					otherAverageRating /= iterations;
-					for(Tuple2<Integer, Float> otherMovie : tuple._2) {
-						for(Tuple2<Integer, Float> userMovie : myUserMoviesList) {
-							if(userMovie._1==otherMovie._1) {
-								numberOfMoviesRatedInCommom++;
-								float userMovieDelta = userMovie._2-userAverageRating;
-								float otherMovieDelta = otherMovie._2-otherAverageRating;
-								cosineSimilarity += userMovieDelta*otherMovieDelta;
-								userSumOfDeltas += userMovieDelta*userMovieDelta;
-								otherSumOfDeltas += otherMovieDelta*otherMovieDelta;
-							}
-						}
-					}
-					if(numberOfMoviesRatedInCommom>1&&cosineSimilarity!=0f&&userSumOfDeltas!=0f&&otherSumOfDeltas!=0f) {
-						cosineSimilarity /= Math.sqrt(userSumOfDeltas*otherSumOfDeltas);
-						result = cosineSimilarity;
-					}
-//					System.out.println("NM: "+numberOfMoviesRatedInCommom+ "CS: "+cosineSimilarity
-//							+"US: "+userSumOfDeltas+" OS: "+otherSumOfDeltas);
-					return new Tuple2<Float,Tuple2<Integer, Iterable<Tuple2<Integer, Float>>>>(result, tuple);
-				});
-		//Sort the cosine similarities in descending order
-		JavaPairRDD<Float, Tuple2<Integer, Iterable<Tuple2<Integer, Float>>>> sortedCosineSimilarities = cosineSimilarities.sortByKey(false);
-		sortedCosineSimilarities.foreach(tuple->{
-			System.out.println("User: " + tuple._2._1 + " Cosine similarity: " + tuple._1);
+				}
+			}
+			if(numberOfMoviesRatedInCommom>1&&cosineSimilarity!=0f&&userSumOfDeltas!=0f&&otherSumOfDeltas!=0f) {
+				cosineSimilarity /= Math.sqrt(userSumOfDeltas*otherSumOfDeltas);
+				result = cosineSimilarity;
+			}
+			if(result!=-2f) {
+
+				othersWithSimilarity.add(new Tuple2<>(result, other._2));
+			}
 		});
-		//Get the top users with the highest cosine similarity and put it in a list
-//		List<Tuple2<Float, Tuple2<Integer, Iterable<Tuple2<Integer, Float>>>>> topUsers = sortedCosineSimilarities.take(numberOfUsersComparatedTo);
-//		//Print top users list
-//		topUsers.forEach(tuple -> {
-//			System.out.println("User: " + tuple._2._1 + " Cosine similarity: " + tuple._1);
+		
+//		System.out.println("List: "+othersWithSimilarity.size());
+		JavaRDD<Tuple2<Float, Iterable<Tuple2<Integer,Float>>>> similarityRDD =
+				sc.parallelize(othersWithSimilarity);
+//		System.out.println("Similarity: "+similarityRDD.count());
+		JavaPairRDD<Float, Iterable<Tuple2<Integer,Float>>> similarityWithMoviesSorted =
+				JavaPairRDD.fromJavaRDD(similarityRDD).sortByKey(false);
+//		System.out.println("Movies: "+similarityWithMoviesSorted.count());
+//		similarityWithMoviesSorted.take(numberOfUsersComparatedTo).forEach(tuple->{
+//			System.out.println(" Cosine similarity: " + tuple._1);
 //		});
-
-
-		return null;
+		JavaPairRDD<Integer,Float> moviesUngrouped = rows.mapToPair(row -> {
+			return new Tuple2<Integer,Float>(row.getInt(0), row.getFloat(2));
+		});
+		JavaPairRDD<Integer,Float> moviesGrouped = moviesUngrouped.reduceByKey((a,b)-> 0f);
+		moviesGrouped.foreach(tuple->{
+			System.out.println(" movie: " + tuple._1+" rating: "+tuple._2);
+		});
+		List<Tuple2<Float, Iterable<Tuple2<Integer, Float>>>> usersList = similarityWithMoviesSorted.collect();
+		//System.out.println("Before");
+		JavaPairRDD<Integer,Float> moviesPredictions = moviesGrouped.mapToPair(movie->{
+			//System.out.println(movie._1+" "+movie._2);
+			int counter = 0;
+			float normalizedSumOfSimilaritty = 0f;
+			float total = 0f;
+			for(int i = 0; i<usersList.size();i++) {
+				Tuple2<Float, Iterable<Tuple2<Integer, Float>>> other = usersList.get(i);
+				float otherAverageRating = 0f;
+				int iterations = 0;
+				for(Tuple2<Integer, Float> tuple : other._2) {
+					otherAverageRating += tuple._2;
+					iterations++;
+				}
+				otherAverageRating /= iterations;
+				Iterable<Tuple2<Integer, Float>> otherMovies = other._2;
+				for(Tuple2<Integer, Float>otherMovie: otherMovies) {
+					//System.out.println(otherMovie._1+" OM "+otherMovie._2);
+					if(otherMovie._1.equals(movie._1)) {
+						//System.out.println("Inside if");
+						counter++;
+						//System.out.println(counter);
+						normalizedSumOfSimilaritty += Math.abs(other._1);
+						total += (otherMovie._2-otherAverageRating)*other._1;
+						break;
+					}
+				}
+			}
+			//System.out.println("Outside if: "+counter);
+			if(counter>1){// only adds a movie if it has being rated by other users
+				float predictedRating = finalUserAverageRating+(total/normalizedSumOfSimilaritty);
+				return new Tuple2<Integer,Float>(movie._1,predictedRating);
+				//recommendedMovies.add(new Movie(movieId,predictedRating));
+			}
+			return null;
+		});
+		//System.out.println("After, Movies Predictions size: "+moviesPredictions.count());
+		moviesPredictions.filter(tuple-> tuple!=null).sortByKey(false).foreach(movie->{
+			System.out.println("MovieId:"+movie._1+" Predicted Rating:"+movie._2);
+		});
 	}
-
 }

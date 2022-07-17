@@ -5,6 +5,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 
 import org.openjdk.jmh.profile.GCProfiler;
 import org.openjdk.jmh.profile.StackProfiler;
@@ -18,13 +19,13 @@ import fileReader.JsonFileReader;
 import model.Movie;
 import model.User;
 import recommendation.ItemRecommendation;
+import scala.Tuple2;
 
 public class Application {
 
 	public static void main(String[] args) throws RunnerException {
 		ItemRecommendation itemRecommendation = new ItemRecommendation();
-		ArrayList<Movie> recommendedMovies = itemRecommendation.generateRecommendationForUser(997206, 10);
-
+		itemRecommendation.generateRecommendationForUser(997206, 10);
 //		Instant start = Instant.now();
 //		FileReader fileReader = new JsonFileReader();
 //		ItemRecommendation itemRecommendation = new ItemRecommendation();
