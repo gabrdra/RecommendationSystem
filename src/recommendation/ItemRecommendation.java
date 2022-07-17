@@ -12,6 +12,7 @@ import model.User;
 import scala.Int;
 import scala.Tuple2;
 
+import org.apache.cxf.jaxrs.model.UserApplication;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.sql.Column;
@@ -47,77 +48,71 @@ public class ItemRecommendation {
 				.schema(schema)
 				.load("E:\\UFRN\\P7\\Concorrente\\ratingsfixed.json")
 				.toJavaRDD();
-		List<Movie> myUserMovies = new ArrayList<Movie>();
-		HashMap<Integer,List<Movie>> othersMovies = new HashMap<Integer,List<Movie>>();
-		JavaPairRDD<Integer, Integer> users = rows.mapToPair(row->{
+		//Map the data to a JavaPairRDD that contains the user_id, movie_id and the rating
+		List<Tuple2<Integer, Float>> myUserMoviesList = new ArrayList<>();
+		JavaPairRDD<Integer, Tuple2<Integer, Float>> ratings = rows.mapToPair(row -> {
 			if(row.getInt(1) == userId) {
-				myUserMovies.add(new Movie(row.getInt(0), row.getFloat(2)));
-				return null;
+				myUserMoviesList.add(new Tuple2<>(row.getInt(0), row.getFloat(2)));
 			}
-			Tuple2<Integer, Integer> returntuple2 = new Tuple2<>(row.getInt(1),row.getInt(0));
-			if(!othersMovies.containsKey(othersMovies)) {
-				List<Movie> movies = new ArrayList<>();
-				movies.add(new Movie(row.getInt(0), row.getFloat(2)));
-				othersMovies.put(returntuple2._1, movies);
-			}
-			return returntuple2;
+			return new Tuple2<>(row.getInt(1), new Tuple2<>(row.getInt(0), row.getFloat(2)));
 		});
-		JavaPairRDD<Integer, List<Tuple2<Integer, Float>>> usersWithMovies = users.groupByKey().mapToPair(tuple->{
-			List<Tuple2<Integer, Float>> movies = new ArrayList<>();
-			othersMovies.get(tuple._1).forEach(movie->{
-				movies.add(new Tuple2<>(movie.getId(), movie.getRating()));
-			});
-			return new Tuple2<>(tuple._1, movies);
-		});
-//		users.foreach(row->{if(row==null){System.out.println("null");}else{{System.out.println(row._1 + row._2.toString());}}});
-		//Calculate the cosine similarity
-		JavaPairRDD<Float, Integer> cosineSimilarities = usersWithMovies.mapToPair(other->{
-//			 Tuple2 <Float,Integer> returnValue = new Tuple2<Float,Integer>(cosineSimilarity(myUserMovies, other._2),other._1);
-			Float result = 0f;
-			int numberOfMoviesRatedInCommom = 0;
-			float userSumOfDeltas = 0f; //This is the squared deviation between a given movie and the remaining movies rated by the user
-			float otherSumOfDeltas = 0f;
-			float cosineSimilarity = 0f;
-			float userAverageRating = 0f;
-			for(Movie movie : myUserMovies) {
-				userAverageRating += movie.getRating();
-			}
-			userAverageRating /= myUserMovies.size();
-			float otherAverageRating = 0f;
-			int iterations = 0;
-			for(Tuple2<Integer, Float> movie : other._2) {
-				otherAverageRating += movie._2;
-				iterations++;
-			}
-			otherAverageRating /= iterations;
-			otherAverageRating /= iterations;
-			for(Movie userMovie:myUserMovies) {
-				for(Tuple2<Integer, Float> otherMovie:other._2) {
-					if(userMovie.getId()==otherMovie._1) {
-						numberOfMoviesRatedInCommom++;
-						float userMovieDelta = userMovie.getRating()-userAverageRating;
-						float otherMovieDelta = otherMovie._2-otherAverageRating;
-						cosineSimilarity += userMovieDelta*otherMovieDelta;
-						userSumOfDeltas += userMovieDelta*userMovieDelta;
-						otherSumOfDeltas += otherMovieDelta*otherMovieDelta;
+		float userAverageRatingLocal = 0;
+		for(Tuple2<Integer, Float> tuple : myUserMoviesList) {
+			userAverageRatingLocal += tuple._2;
+		}
+		userAverageRatingLocal /= myUserMoviesList.size();
+		final float userAverageRating = userAverageRatingLocal;
+		//final List<Tuple2<Integer, Float>> myUserMovies = myUserMoviesTemp;
+		//Calculate the cosine similarity between the user and the other users using the myUserMovies list
+		JavaPairRDD<Float, Tuple2<Integer, Iterable<Tuple2<Integer, Float>>>> cosineSimilarities = ratings.groupByKey()
+				.filter(tuple -> tuple._1 != userId)
+				.mapToPair(tuple -> {
+					float result = 0;
+					int numberOfMoviesRatedInCommom = 0;
+					float userSumOfDeltas = 0f; //This is the squared deviation between a given movie and the remaining movies rated by the user
+					float otherSumOfDeltas = 0f;
+					float cosineSimilarity = 0f;
+					float otherAverageRating = 0f;
+					int iterations = 0;
+					for(Tuple2<Integer, Float> movie : tuple._2) {
+						otherAverageRating += movie._2;
+						iterations++;
 					}
-				}
-			}
-			if(numberOfMoviesRatedInCommom>1&&cosineSimilarity!=0f&&userSumOfDeltas!=0f&&otherSumOfDeltas!=0f) {
-				cosineSimilarity /= Math.sqrt(userSumOfDeltas*otherSumOfDeltas);
-				result = cosineSimilarity;
-			}
-			Tuple2 <Float,Integer> returnValue = new Tuple2<Float,Integer>(result ,other._1);
-			return returnValue;
+					otherAverageRating /= iterations;
+					for(Tuple2<Integer, Float> otherMovie : tuple._2) {
+						for(Tuple2<Integer, Float> userMovie : myUserMoviesList) {
+							if(userMovie._1==otherMovie._1) {
+								numberOfMoviesRatedInCommom++;
+								float userMovieDelta = userMovie._2-userAverageRating;
+								float otherMovieDelta = otherMovie._2-otherAverageRating;
+								cosineSimilarity += userMovieDelta*otherMovieDelta;
+								userSumOfDeltas += userMovieDelta*userMovieDelta;
+								otherSumOfDeltas += otherMovieDelta*otherMovieDelta;
+							}
+						}
+					}
+					if(numberOfMoviesRatedInCommom>1&&cosineSimilarity!=0f&&userSumOfDeltas!=0f&&otherSumOfDeltas!=0f) {
+						cosineSimilarity /= Math.sqrt(userSumOfDeltas*otherSumOfDeltas);
+						result = cosineSimilarity;
+					}
+//					System.out.println("NM: "+numberOfMoviesRatedInCommom+ "CS: "+cosineSimilarity
+//							+"US: "+userSumOfDeltas+" OS: "+otherSumOfDeltas);
+					return new Tuple2<Float,Tuple2<Integer, Iterable<Tuple2<Integer, Float>>>>(result, tuple);
+				});
+		//Sort the cosine similarities in descending order
+		JavaPairRDD<Float, Tuple2<Integer, Iterable<Tuple2<Integer, Float>>>> sortedCosineSimilarities = cosineSimilarities.sortByKey(false);
+		sortedCosineSimilarities.foreach(tuple->{
+			System.out.println("User: " + tuple._2._1 + " Cosine similarity: " + tuple._1);
 		});
-		//Get the firsts with the highest compatibility
-		//cosineSimilarities.foreach(other ->{System.out.println(other);});
-		System.out.println(cosineSimilarities);
-		cosineSimilarities.foreach(row->{if(row==null){System.out.println("null");}else{System.out.println("notnull");}});
-		//cosineSimilarities.foreach(row->{if(row==null){System.out.println("null");}else{{System.out.println(row._1 + row._2.toString());}}});
-		//Make a JavaPairRDD<Integer, Float> of movies aggregating by the item_id
-		//JavaPairRDD<Integer, Float> movies = rows.mapToPair(row->{new Tuple});
+		//Get the top users with the highest cosine similarity and put it in a list
+//		List<Tuple2<Float, Tuple2<Integer, Iterable<Tuple2<Integer, Float>>>>> topUsers = sortedCosineSimilarities.take(numberOfUsersComparatedTo);
+//		//Print top users list
+//		topUsers.forEach(tuple -> {
+//			System.out.println("User: " + tuple._2._1 + " Cosine similarity: " + tuple._1);
+//		});
+
+
 		return null;
 	}
-	
+
 }
