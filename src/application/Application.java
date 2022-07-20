@@ -23,7 +23,7 @@ public class Application {
 
 	public static void main(String[] args) throws RunnerException {
 		ItemRecommendation itemRecommendation = new ItemRecommendation();
-		ArrayList<Movie> recommendedMovies = itemRecommendation.generateRecommendationForUser(997206, 1000);
+		itemRecommendation.generateRecommendationForUser(997206, 1000);
 
 //		Instant start = Instant.now();
 //		FileReader fileReader = new JsonFileReader();
