@@ -111,12 +111,12 @@ public class ItemRecommendation {
 			return new Tuple2<Integer,Float>(row.getInt(0), row.getFloat(2));
 		});
 		JavaPairRDD<Integer,Float> moviesGrouped = moviesUngrouped.reduceByKey((a,b)-> 0f);
-		moviesGrouped.foreach(tuple->{
-			System.out.println(" movie: " + tuple._1+" rating: "+tuple._2);
-		});
+//		moviesGrouped.foreach(tuple->{
+//			System.out.println(" movie: " + tuple._1+" rating: "+tuple._2);
+//		});
 		List<Tuple2<Float, Iterable<Tuple2<Integer, Float>>>> usersList = similarityWithMoviesSorted.collect();
 		//System.out.println("Before");
-		JavaPairRDD<Integer,Float> moviesPredictions = moviesGrouped.mapToPair(movie->{
+		JavaPairRDD<Float,Integer> moviesPredictions = moviesGrouped.mapToPair(movie->{
 			//System.out.println(movie._1+" "+movie._2);
 			int counter = 0;
 			float normalizedSumOfSimilaritty = 0f;
@@ -144,16 +144,16 @@ public class ItemRecommendation {
 				}
 			}
 			//System.out.println("Outside if: "+counter);
-			if(counter>1){// only adds a movie if it has being rated by other users
+			if(counter>5){// only adds a movie if it has being rated by other users
 				float predictedRating = finalUserAverageRating+(total/normalizedSumOfSimilaritty);
-				return new Tuple2<Integer,Float>(movie._1,predictedRating);
+				return new Tuple2<Float,Integer>(predictedRating,movie._1);
 				//recommendedMovies.add(new Movie(movieId,predictedRating));
 			}
 			return null;
 		});
 		//System.out.println("After, Movies Predictions size: "+moviesPredictions.count());
-		moviesPredictions.filter(tuple-> tuple!=null).sortByKey(false).foreach(movie->{
-			System.out.println("MovieId:"+movie._1+" Predicted Rating:"+movie._2);
+		moviesPredictions.filter(tuple-> tuple!=null).sortByKey(false).take(50).forEach(movie->{
+			System.out.println("MovieId:"+movie._2+" Predicted Rating:"+movie._1);
 		});
 	}
 }
